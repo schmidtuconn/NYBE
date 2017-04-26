@@ -27,11 +27,12 @@ namespace NYBE.Models
         public string BuyerID { get; set; }
         public int BookID { get; set; }
         public double TransRating { get; set; }
-        public int Status { get; set; } // 1 for active, 0 for closed?
+        public int Status { get; set; } // 1 for open, 0 for closed
 
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:c}")]
         public double SoldPrice { get; set; } // how did i forget this...? -ps
         public string Condition { get; set; }
+        public string Comments { get; set; }
         public DateTime TransDate { get; set; }
 
         public ApplicationUser Seller { get; set; }

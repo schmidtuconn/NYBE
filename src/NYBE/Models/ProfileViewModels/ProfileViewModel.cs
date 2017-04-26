@@ -14,9 +14,10 @@ namespace NYBE.Models
         public double rating { get; set; }
         public School school { get; set; }
         public bool isAdmin { get; set; }
+        public bool ownProfile { get; set; }
         public List<BookListing> listings { get; set; }
         public List<TransactionLog> soldTransactions { get; set; }
         public List<TransactionLog> boughtTransactions { get; set; }
-        public List<BookListing> wishList { get; set; }
+        public Dictionary<BookListing, bool> wishList { get; set; }
     }
 }

@@ -3,6 +3,43 @@
     ViewData["Title"] = "Profile";
 }
 
+<script src="//code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.15/datatables.min.css" />
+<script>
+    var jquery = jQuery.noConflict();
+    jquery(document).ready(function () {
+        jquery('#book-listings').DataTable();
+    });
+</script>
+@if (Model.soldTransactions.Any())
+{
+    <script>
+        var jquery = jQuery.noConflict();
+        jquery(document).ready(function () {
+            jquery('#sold-books').DataTable();
+        });
+    </script>
+}
+@if (Model.boughtTransactions.Any())
+{
+    <script>
+        var jquery = jQuery.noConflict();
+        jquery(document).ready(function () {
+            jquery('#bought-books').DataTable();
+        });
+    </script>
+}
+@if (Model.wishList.Any())
+{
+    <script>
+        var jquery = jQuery.noConflict();
+        jquery(document).ready(function () {
+            jquery('#wish-list').DataTable();
+        });
+    </script>
+}
+
 <h1>@Model.name's Profile</h1>
 
 @if (Model.isAdmin == true)
@@ -11,8 +48,8 @@
 }
 
 <p>Rating: @Model.rating</p>
-<p>Phone Number: @Model.phone</p>
-<p>Email: @Model.email</p>
+<p>Phone Number: <a href="tel:+@Model.phone">@Model.phone</a></p>
+<p>Email: <a href="mailto:@Model.email">@Model.email</a></p>
 <p>Preferred Contact: @Model.preferredContact</p>
 <p>School: @Model.school.Name</p>
 
@@ -29,7 +66,7 @@
         @if (Model.listings.Any())
         {
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table id="book-listings" class="table table-striped">
                     <thead>
                         <tr>
 
@@ -37,18 +74,39 @@
                             <th>Course</th>
                             <th>Condition</th>
                             <th>Price</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (BookListing x in Model.listings)
                 {
                             <tr>
-                                <td> @x.Book.Title </td>
+                                <td> <a asp-controller="Book" asp-action="Index" asp-route-bookId="@x.BookID">@x.Book.Title</a> </td>
                                 <td> @x.Course.Dept @x.Course.CourseNum - @x.Course.Name </td>
                                 <td> @x.Condition </td>
-                                <td> @string.Format("{0:c}", x.AskingPrice) </td>
-                                <td><a asp-controller="Profile" asp-action="EditListing" asp-route-id="@x.ID" class="btn btn-success">Edit</a></td>
-                                <td><a asp-controller="Profile" asp-action="DeleteListing" asp-route-id="@x.ID" class="btn btn-danger">Delete</a></td>
+                                @if (x.AskingPrice > 0)
+                                {
+                                    <td> @string.Format("{0:c}", x.AskingPrice) </td>
+                                }
+                                else
+                                {
+                                    <td>Trade</td>
+                                }
+                                <td>
+                                    <div class="btn-group">
+                                        @if (Model.ownProfile)
+                                        {
+
+                                            <a asp-controller="Transaction" asp-action="Survey" asp-route-id="@x.ID" asp-route-token="owner" class="btn btn-primary">Sold</a>
+                                            <a asp-controller="Profile" asp-action="EditListing" asp-route-id="@x.ID" class="btn btn-success">Edit</a>
+                                            <a asp-controller="Profile" asp-action="DeleteListing" asp-route-id="@x.ID" class="btn btn-danger">Delete</a>
+                                        }
+                                        else
+                                        {
+                                            <a asp-controller="Transaction" asp-action="Buy" asp-route-id="@x.ID" class="btn btn-success">Buy</a>
+                                        }
+                                    </div>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -57,17 +115,16 @@
         }
         else
         {
-            <p>No Books Listed!</p>
+            <h5>No Books Listed!</h5>
         }
     </div>
 
 
     <div id="sold" class="tab-pane fade">
-        <h4>Books you sold:</h4>
         @if (Model.soldTransactions.Any())
         {
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table id="sold-books" class="table table-striped">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -82,12 +139,19 @@
                     <tbody>
                         @foreach (TransactionLog x in Model.soldTransactions)
                 {
-                            <tr>
+                            <tr style="cursor:pointer" onclick="location.href = '@(Url.Action("Index", "Transaction", new { id = x.ID }))'">
                                 <td> @x.TransDate</td>
-                                <td> @x.Buyer.FirstName @x.Buyer.LastName</td>
+                                <td> <a asp-controller="Profile" asp-route-UserId="@x.Buyer.Id">@x.Buyer.FirstName @x.Buyer.LastName</a></td>
                                 <td> @x.Buyer.Email</td>
-                                <td> @x.Book.Title</td>
-                                <td> @string.Format("{0:c}", x.SoldPrice)</td>
+                                <td> <a asp-controller="Book" asp-action="Index" asp-route-bookId="@x.BookID">@x.Book.Title</a></td>
+                                @if (x.SoldPrice > 0)
+                                {
+                                    <td> @string.Format("{0:c}", x.SoldPrice) </td>
+                                }
+                                else
+                                {
+                                    <td>Trade</td>
+                                }
                                 <td> @x.Condition</td>
                                 <td> @x.TransRating</td>
                             </tr>
@@ -98,8 +162,7 @@
         }
         else
         {
-            <p>No Transaction History!</p>
-            <p>Contribute to the economy and sell some books!</p>
+            <h5>No Transaction History!</h5>
         }
     </div>
     <div id="bought" class="tab-pane fade">
@@ -107,7 +170,7 @@
         @if (Model.boughtTransactions.Any())
         {
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table id="bought-books" class="table table-striped">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -122,12 +185,19 @@
                     <tbody>
                         @foreach (TransactionLog x in Model.boughtTransactions)
                 {
-                            <tr>
+                            <tr style="cursor:pointer" onclick="location.href = '@(Url.Action("Index", "Transaction", new { id = x.ID }))'">
                                 <td> @x.TransDate</td>
-                                <td> @x.Seller.FirstName @x.Seller.LastName</td>
+                                <td> <a asp-controller="Profile" asp-route-UserId="@x.Seller.Id">@x.Seller.FirstName @x.Seller.LastName</a></td>
                                 <td> @x.Seller.Email</td>
-                                <td> @x.Book.Title</td>
-                                <td> @string.Format("{0:c}", x.SoldPrice)</td>
+                                <td> <a asp-controller="Book" asp-action="Index" asp-route-bookId="@x.BookID">@x.Book.Title</a></td>
+                                @if (x.SoldPrice > 0)
+                                {
+                                    <td> @string.Format("{0:c}", x.SoldPrice) </td>
+                                }
+                                else
+                                {
+                                    <td>Trade</td>
+                                }
                                 <td> @x.Condition</td>
                                 <td> @x.TransRating</td>
                             </tr>
@@ -138,34 +208,62 @@
         }
         else
         {
-            <p>No Transaction History!</p>
-            <p>Contribute to the economy and buy some books!</p>
+            <h5>No Transaction History!</h5>
         }
     </div>
     <div id="wish" class="tab-pane fade">
-        <h4>Books you want:</h4>
         @if (Model.wishList.Any())
             {
             <div class="table-responsive">
-                <table class="table table-striped" id="bookListingTable">
+                <table class="table table-striped" id="wish-list">
                     <thead>
                         <tr>
-                            <th>Buyer</th>
-                            <th>School</th>
+                            <th>Book</th>
                             <th>Course</th>
-                            <th>Condition </th>
+                            <th>Condition</th>
                             <th>Price</th>
+                            <th>Is For Sale?</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (BookListing x in Model.wishList)
+                        @foreach (KeyValuePair<BookListing, bool> entry in Model.wishList)
                         {
                             <tr>
-                                <td> @x.User.FirstName @x.User.LastName </td>
-                                <td> @x.User.School.Name</td>
-                                <td> @x.Course.Dept @x.Course.CourseNum - @x.Course.Name </td>
-                                <td> @x.Condition </td>
-                                <td> @string.Format("{0:c}", x.AskingPrice) </td>
+                                <td> <a asp-controller="Book" asp-action="Index" asp-route-bookId="@entry.Key.Book.ID">@entry.Key.Book.Title</a> </td>
+                                <td> @entry.Key.Course.Dept @entry.Key.Course.CourseNum - @entry.Key.Course.Name </td>
+                                <td> @entry.Key.Condition </td>
+                                @if (entry.Key.AskingPrice > 0)
+                                {
+                                    <td> @string.Format("{0:c}", entry.Key.AskingPrice) </td>
+                                }
+                                else
+                                {
+                                    <td>Trade</td>
+                                }
+                                @if (entry.Value)
+                                {
+                                    <td>Yes</td>
+                                }
+                                else
+                                {
+                                    <td>No</td>
+                                }
+                                @if (Model.ownProfile)
+                                {
+                                    <td>
+                                        <div class="btn-group">
+                                            <a asp-controller="Profile" asp-action="EditListing" asp-route-id="@entry.Key.ID" class="btn btn-success">Edit</a>
+                                            <a asp-controller="Profile" asp-action="DeleteListing" asp-route-id="@entry.Key.ID" class="btn btn-danger">Delete</a>
+                                        </div>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td>-</td>
+
+                                }
+
                             </tr>
                         }
                     </tbody>
@@ -174,7 +272,7 @@
         }
         else
         {
-            <h5>Contribute to the economy and buy some books!</h5>
+            <h5>No books in Wish List!</h5>
         }
     </div>
 </div>

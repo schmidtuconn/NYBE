@@ -32,3 +32,43 @@ $("#schoolSelectBox").change(function() {
         }
     });
 });
+
+$("#editTradeCheckBox").click(function () {
+    console.log("Clicked!");
+    if (document.getElementById('editTradeCheckBox').checked) {
+        $("#editListingPrice").hide();
+
+    } else {
+        $("#editListingPrice").show();
+    }
+});
+
+$("#listingTradeCheckBox").click(function () {
+    console.log("Clicked!");
+    if (document.getElementById('listingTradeCheckBox').checked) {
+        $("#listingPrice").hide();
+
+    } else {
+        $("#listingPrice").show();
+    }
+});
+
+$("#wishTradeCheckBox").click(function () {
+    console.log("Clicked!");
+    if (document.getElementById('wishTradeCheckBox').checked) {
+        $("#idealPrice").hide();
+
+    } else {
+        $("#idealPrice").show();
+    }
+});
+
+$("#surveyTradeCheckBox").click(function () {
+    console.log("Clicked!");
+    if (document.getElementById('surveyTradeCheckBox').checked) {
+        $("#surveyPriceDiv").hide();
+        $("#surveyPrice").val(-1);
+    } else {
+        $("#surveyPriceDiv").show();
+    }
+});
